@@ -4,7 +4,8 @@ const session = require('express-session');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 const { Configuration, OpenAIApi } = require("openai");
 const dotenv = require('dotenv');
-let mysql = require('mysql');
+const axios = require("axios");
+//let mysql = require('mysql');
 dotenv.config();
 
 const app = express();
@@ -19,23 +20,10 @@ app.use(session({ secret: 'anything-you-want-but-keep-secret' }));
 const configuration = new Configuration({
     organization: process.env.OPENAI_ORGRANIZATION,
     apiKey: process.env.OPENAI_API_KEY,
-   
-
 });
 
 
 const openai = new OpenAIApi(configuration);
-
-
-let connection = mysql.createConnection({
-   
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASS,
-    database: process.env.MYSQL_DB
-});
-
-connection.connect();
 
 
 
@@ -44,29 +32,34 @@ app.post('/sms', async (req, res) => {
     const smsCount = req.session.counter || 0;
 
     const number = req.body.From.substring(9, req.body.From.length);
+    // {
+    //     "contact_no": "+923132397926",
+    //     "sub": 7,
+    //     "tokens": 150
+    //   }
+    let data = await axios.get("https://chatgpt.talhasultan.dev/api/subscriptions/" + number);
+    
+    data = data.data.data;
 
-    const data = await new Promise(function (resolve, reject) {
-        connection.query('SELECT * FROM `subscription` WHERE number = ' + number + '', function (err, results, fields) {
-          if (err) return reject(err);
-          return resolve(results);
-        })
+
+    // new Promise(function (resolve, reject) {
+    //     connection.query('SELECT * FROM `subscription` WHERE number = ' + number + '', function (err, results, fields) {
+    //       if (err) return reject(err);
+    //       return resolve(results);
+    //     })
 
     //console.log(data);
-
-});
     
     let subscription;
 
     console.log(data);
 
-    if (data[0] != null) {
+    if (data.subscription.length != 0) {
 
         //console.log("empty");
-        subscription = data[0].sub
-    }else if (data[0] == null) {
+        subscription = data.subscription[0].sub
+    }else if (data.subscription.length == 0) {
         
-        
-
         subscription = -1;
     }
     
@@ -83,7 +76,14 @@ app.post('/sms', async (req, res) => {
         if ( isNaN(req.body.Body) == false) {
             
             message = "Tokens are selected"
-            connection.query("INSERT INTO `subscription` (`id`, `number`, `sub`, `tokens`) VALUES (NULL, '" + number + "', '7', '"+req.body.Body+"')");
+            
+            axios.post("https://chatgpt.talhasultan.dev/api/subscriptions", {
+                "contact_no": number,
+                "sub": '7',
+                "tokens":req.body.Body
+              });
+            
+            //connection.query("INSERT INTO `subscription` (`id`, `number`, `sub`, `tokens`) VALUES (NULL, '" + number + "', '7', '"+req.body.Body+"')");
         }else {
 
             message = "Please give me your required tokens"
@@ -97,8 +97,7 @@ app.post('/sms', async (req, res) => {
             model: "text-davinci-003",
             prompt: req.body.Body,
             temperature: 0,
-            max_tokens: parseInt(data[0].tokens)
-            
+            max_tokens: parseInt(data.subscription[0].tokens)
         });
     
     
@@ -114,12 +113,11 @@ app.post('/sms', async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
 });
-
 //console.log('The solution is: ', results[0]);
 
 //connection.end();
 
 
-http.createServer(app).listen(3333, () => {
+http.createServer(app).listen(process.env.PORT || 3000, () => {
     console.log('Express server listening on port 3000');
 });
