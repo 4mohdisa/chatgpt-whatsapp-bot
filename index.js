@@ -25,10 +25,6 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-
-
-
-
 app.get( '/', (req,res) => {
     res.send("Running............");
 } )
@@ -38,15 +34,13 @@ app.post('/sms', async (req, res) => {
     const smsCount = req.session.counter || 0;
 
     const number = req.body.From.substring(9, req.body.From.length);
-    // {
-    //     "contact_no": "+923132397926",
-    //     "sub": 7,
-    //     "tokens": 150
-    //   }
+  
     let data = await axios.get("https://chatgpt.talhasultan.dev/api/subscriptions/" + number);
     
     data = data.data.data;
 
+
+   
     
     let subscription;
 
@@ -54,15 +48,13 @@ app.post('/sms', async (req, res) => {
 
     if (data.subscription.length != 0) {
 
-        //console.log("empty");
+
         subscription = data.subscription[0].sub
     }else if (data.subscription.length == 0) {
         
         subscription = -1;
     }
     
-    // console.log(subscription);
-    // console.log(req.body.Body);
 
     let message;
 
@@ -81,7 +73,6 @@ app.post('/sms', async (req, res) => {
                 "tokens":req.body.Body
               });
             
-            //connection.query("INSERT INTO `subscription` (`id`, `number`, `sub`, `tokens`) VALUES (NULL, '" + number + "', '7', '"+req.body.Body+"')");
         }else {
 
             message = "Please give me your required tokens"
