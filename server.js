@@ -28,6 +28,12 @@ const openai = new OpenAIApi(configuration);
 
 
 
+
+app.get( '/', (req,res) => {
+    res.send("Running............");
+} )
+
+
 app.post('/sms', async (req, res) => {
     const smsCount = req.session.counter || 0;
 
@@ -41,14 +47,6 @@ app.post('/sms', async (req, res) => {
     
     data = data.data.data;
 
-
-    // new Promise(function (resolve, reject) {
-    //     connection.query('SELECT * FROM `subscription` WHERE number = ' + number + '', function (err, results, fields) {
-    //       if (err) return reject(err);
-    //       return resolve(results);
-    //     })
-
-    //console.log(data);
     
     let subscription;
 
