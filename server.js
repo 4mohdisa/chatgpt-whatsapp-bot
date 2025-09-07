@@ -35,7 +35,7 @@ app.post('/sms', async (req, res) => {
 
     const number = req.body.From.substring(9, req.body.From.length);
   
-    let data = await axios.get("https://chatgpt.talhasultan.dev/api/subscriptions/" + number);
+    let data = await axios.get(process.env.SUBSCRIPTION_API_URL + "/" + number);
     
     data = data.data.data;
 
@@ -67,7 +67,7 @@ app.post('/sms', async (req, res) => {
             
             message = "Tokens are selected"
             
-            axios.post("https://chatgpt.talhasultan.dev/api/subscriptions", {
+            axios.post(process.env.SUBSCRIPTION_API_URL, {
                 "contact_no": number,
                 "sub": '7',
                 "tokens":req.body.Body
