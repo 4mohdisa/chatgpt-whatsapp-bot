@@ -73,6 +73,8 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
+# NEVER commit .env — it contains real API keys (OpenAI, Twilio, Telegram, Microsoft).
+# Use .env.example as the template. If a secret has been committed, rotate it immediately.
 .env
 .env.development.local
 .env.test.local
